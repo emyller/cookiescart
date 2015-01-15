@@ -31,7 +31,8 @@
 		var data = _parseData($.cookie(itemId));
 
 		// Update the cookie jar
-		data['quantity'] += 1;
+		var quantity = +$('.cookiescart-quantity[data-id='+itemId+']').val() || 1;
+		data['quantity'] += quantity;
 		data['price'] = itemPrice;
 		$.cookie(itemId, [data['quantity'], data['price']].join(','));
 
