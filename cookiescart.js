@@ -6,6 +6,23 @@
 			_.map((data || ',').split(','), Number));
 	}
 
+	function updateCartItems() {
+		/*
+		Update an element `.cookiescart-items` with clones of matching
+		item representations (`.cookiescart-item`). Note that they should exist
+		hidden somewhere in your page.
+		*/
+		var cookie = $.cookie();
+		var cart = $('.cookiescart-items');
+
+		cart.empty();  // Reset
+
+		$.each(cookie, function (itemId, data) {
+			var item = $('.cookiescart-item[data-id='+itemId+']').clone();
+			cart.append(item);
+		});
+	}
+
 	function updateStrings(add) {
 		var cookie = $.cookie();
 
@@ -36,10 +53,12 @@
 		data['price'] = itemPrice;
 		$.cookie(itemId, [data['quantity'], data['price']].join(','));
 
-		// Update strings
+		// Update routines
+		updateCartItems();
 		updateStrings();
 	});
 
+	updateCartItems();
 	updateStrings();
 
 }(jQuery)
