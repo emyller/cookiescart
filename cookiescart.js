@@ -64,6 +64,19 @@
 		updateStrings();
 	});
 
+	$(document).on('click', '.cookiescart-remove-all', function (e) {
+		// Nothing weird should happen here as well.
+		e.preventDefault();
+
+		// Update the cookie jar
+		var itemId = this.getAttribute('data-id');
+		$.removeCookie(itemId);
+
+		// Update routines
+		updateCartItems();
+		updateStrings();
+	});
+
 	updateCartItems();
 	updateStrings();
 
