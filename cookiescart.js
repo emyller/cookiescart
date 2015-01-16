@@ -6,6 +6,18 @@
 			_.map((data || ',').split(','), Number));
 	}
 
+	function _clickWrap(callback) {
+		var _handler = function (e) {
+			e.preventDefault();  // Nothing weird will happen upon clicks!
+			callback.call(this, e);  // Do the original dance (click)
+
+			// Update routines
+			updateCartItems();
+			updateStrings();
+		}
+		return _handler;
+	}
+
 	function updateCartItems() {
 		/*
 		Update an element `.cookiescart-items` with clones of matching
@@ -44,10 +56,7 @@
 		$('.cookiescart-total').text(total.toFixed(2));
 	}
 
-	$(document).on('click', '.cookiescart-add', function (e) {
-		// Nothing weird will happen!
-		e.preventDefault();
-
+	$(document).on('click', '.cookiescart-add', _clickWrap(function (e) {
 		// Gather item info
 		var itemId = this.getAttribute('data-id');
 		var itemPrice = this.getAttribute('data-price');
@@ -58,24 +67,12 @@
 		data['quantity'] += quantity;
 		data['price'] = itemPrice;
 		$.cookie(itemId, [data['quantity'], data['price']].join(','));
+	}));
 
-		// Update routines
-		updateCartItems();
-		updateStrings();
-	});
-
-	$(document).on('click', '.cookiescart-remove-all', function (e) {
-		// Nothing weird should happen here as well.
-		e.preventDefault();
-
-		// Update the cookie jar
-		var itemId = this.getAttribute('data-id');
-		$.removeCookie(itemId);
-
-		// Update routines
-		updateCartItems();
-		updateStrings();
-	});
+	$(document).on('click', '.cookiescart-remove-all', _clickWrap(function (e) {
+		// Delete the item from the cookie jar
+		$.removeCookie(this.getAttribute('data-id'));
+	}));
 
 	updateCartItems();
 	updateStrings();
