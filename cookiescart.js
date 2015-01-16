@@ -59,7 +59,7 @@
 	$(document).on('click', '.cookiescart-add', _clickWrap(function (e) {
 		// Gather item info
 		var itemId = this.getAttribute('data-id');
-		var itemPrice = this.getAttribute('data-price');
+		var itemPrice = $('.cookiescart-item[data-id='+itemId+']').attr('data-price');
 		var data = _parseData($.cookie(itemId));
 
 		// Update the cookie jar
