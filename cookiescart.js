@@ -1,9 +1,11 @@
 +function ($) {
 
 	function _parseData(data) {
-		return _.object(
-			['quantity', 'price'],
-			_.map((data || ',').split(','), Number));
+		data = _.object(
+			['quantity', 'price', 'name'], (data || ',,').split(','));
+		data['quantity'] = Number(data['quantity']);
+		data['price'] = Number(data['price']);
+		return data;
 	}
 
 	function _clickWrap(callback) {
@@ -59,14 +61,17 @@
 	$(document).on('click', '.cookiescart-add', _clickWrap(function (e) {
 		// Gather item info
 		var itemId = this.getAttribute('data-id');
-		var itemPrice = $('.cookiescart-item[data-id='+itemId+']').attr('data-price');
+		var itemRepr = $('.cookiescart-item[data-id='+itemId+']');
+		var itemPrice = itemRepr.attr('data-price');
+		var itemName = itemRepr.attr('data-name');
 		var data = _parseData($.cookie(itemId));
 
 		// Update the cookie jar
 		var quantity = +$('.cookiescart-quantity[data-id='+itemId+']').val() || 1;
 		data['quantity'] += quantity;
 		data['price'] = itemPrice;
-		$.cookie(itemId, [data['quantity'], data['price']].join(','));
+		data['name'] = itemName;
+		$.cookie(itemId, [data['quantity'], data['price'], data['name']].join(','));
 	}));
 
 	$(document).on('click', '.cookiescart-remove', _clickWrap(function (e) {
