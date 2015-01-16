@@ -69,6 +69,23 @@
 		$.cookie(itemId, [data['quantity'], data['price']].join(','));
 	}));
 
+	$(document).on('click', '.cookiescart-remove', _clickWrap(function (e) {
+		// Gather item info
+		var itemId = this.getAttribute('data-id');
+		var data = _parseData($.cookie(itemId));
+
+		data['quantity'] -= 1;
+
+		// Delete the entry if there is no remaining item
+		if (data['quantity'] === 0) {
+			$.removeCookie(this.getAttribute('data-id'));
+			return;
+		}
+
+		// Update the cookie jar
+		$.cookie(itemId, [data['quantity'], data['price']].join(','));
+	}));
+
 	$(document).on('click', '.cookiescart-remove-all', _clickWrap(function (e) {
 		// Delete the item from the cookie jar
 		$.removeCookie(this.getAttribute('data-id'));
