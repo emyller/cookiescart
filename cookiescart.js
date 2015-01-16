@@ -20,6 +20,12 @@
 		$.each(cookie, function (itemId, data) {
 			var item = $('.cookiescart-item[data-id='+itemId+']').clone();
 			cart.append(item);
+
+			// Render amount and total of the item currently on the cart
+			data = _parseData(data);
+			item.find('.cookiescart-item-amount').text(data['quantity']);
+			item.find('.cookiescart-item-total').text(
+				(data['quantity'] * data['price']).toFixed(2));
 		});
 	}
 
