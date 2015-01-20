@@ -49,22 +49,23 @@
 
 			cart.empty();  // Reset
 
-			$.each(cookie, function (name, data) {
+			_.chain(_.pairs($.cookie()))
 				// Don't touch others' cookies!
-				if (name.indexOf(CartItem._prefix) !== 0)
-					return;
+				.filter(function (item) { return item[0].indexOf(CartItem._prefix) === 0 })
 
-				var
-				itemId = name.substring(CartItem._prefix.length),
-				item = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+itemId+']').clone();
-				cart.append(item);
+				// Loop through and render the cart
+				.each(function (item) {
+					var
+					data = CartItem.parseCookie(item[1]),
+					itemId = item[0].substring(CartItem._prefix.length),
+					item = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+itemId+']').clone();
+					cart.append(item);
 
-				// Render amount and total of the item currently on the cart
-				data = CartItem.parseCookie(data);
-				item.find('.'+CC_AMOUNT).text(data['quantity']);
-				item.find('.'+CC_ITEM_TOTAL).text(
-					(data['quantity'] * data['price']).toFixed(2));
-			});
+					// Render amount and total of the item currently on the cart
+					item.find('.'+CC_AMOUNT).text(data['quantity']);
+					item.find('.'+CC_ITEM_TOTAL).text(
+						(data['quantity'] * data['price']).toFixed(2));
+				});
 		},
 
 		updateStrings: function () {
