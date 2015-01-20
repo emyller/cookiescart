@@ -26,8 +26,10 @@
 		this.price = element.getAttribute(CA_ITEM_PRICE);
 	}
 
+	CartItem._prefix = 'cookiescart-';
+
 	CartItem.prototype.getCookieName = function () {
-		return this.id;
+		return CartItem._prefix + this.id;
 	}
 
 	CartItem.prototype.remove = function (amount) {
@@ -82,8 +84,14 @@
 
 		cart.empty();  // Reset
 
-		$.each(cookie, function (itemId, data) {
-			var item = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+itemId+']').clone();
+		$.each(cookie, function (name, data) {
+			// Don't touch others' cookies!
+			if (name.indexOf(CartItem._prefix) !== 0)
+				return;
+
+			var
+			itemId = name.substring(CartItem._prefix.length),
+			item = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+itemId+']').clone();
 			cart.append(item);
 
 			// Render amount and total of the item currently on the cart
@@ -95,17 +103,20 @@
 	}
 
 	CartItem.updateStrings = function () {
-		var cookie = $.cookie();
+		var
+		items = 0,
+		total = 0;
 
-		// Count unique items
-		$('.'+CC_UNIQUE_ITEMS).text(_.size(cookie));
+		$.each($.cookie(), function (itemId, data) {
+			if (itemId.indexOf(CartItem._prefix) !== 0)
+				return;
 
-		// Calculate total
-		var total = 0;
-		$.each(cookie, function (itemId, data) {
 			data = CartItem.parseCookie(data);
+			items += 1;
 			total += data['quantity'] * data['price'];
 		});
+
+		$('.'+CC_UNIQUE_ITEMS).text(items);
 		$('.'+CC_TOTAL).text(total.toFixed(2));
 	}
 
