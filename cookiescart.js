@@ -128,11 +128,16 @@
 
 	function _clickWrap(callback) {
 		var _handler = function (e) {
+			var
+			id = this.getAttribute(CA_ITEM_ID),
+			reprElement = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+id+']')[0],
+			item = new CartItem(reprElement);
+
 			// Nothing weird will happen upon clicks!
 			e.preventDefault();
 
 			// Do the original dance (click)
-			callback.call(this, e);
+			callback.call(this, item);
 
 			// Update routines
 			CartItem.updateCart();
@@ -142,31 +147,15 @@
 	}
 
 	// Add item through add button
-	$(document).on('click', '.'+CC_ADD, _clickWrap(function (e) {
-		var
-		id = this.getAttribute(CA_ITEM_ID),
-		reprElement = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+id+']')[0],
-		item = new CartItem(reprElement);
-
+	$(document).on('click', '.'+CC_ADD, _clickWrap(function (item) {
 		item.add(1);
 	}));
 
-	$(document).on('click', '.'+CC_REMOVE, _clickWrap(function (e) {
-		var
-		id = this.getAttribute(CA_ITEM_ID),
-		reprElement = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+id+']')[0],
-		item = new CartItem(reprElement);
-
+	$(document).on('click', '.'+CC_REMOVE, _clickWrap(function (item) {
 		item.remove(1);
 	}));
 
-
-	$(document).on('click', '.'+CC_REMOVE_ALL, _clickWrap(function (e) {
-		var
-		id = this.getAttribute(CA_ITEM_ID),
-		reprElement = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+id+']')[0],
-		item = new CartItem(reprElement);
-
+	$(document).on('click', '.'+CC_REMOVE_ALL, _clickWrap(function (item) {
 		item.removeAll();
 	}));
 
