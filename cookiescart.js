@@ -1,3 +1,4 @@
+'use strict';
 +function ($) {
 
 	function _parseData(data) {
