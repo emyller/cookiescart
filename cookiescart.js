@@ -12,6 +12,7 @@
 	CC_ITEM_TOTAL = 'cookiescart-item-total',
 	CC_REPR_ITEM = 'cookiescart-item',
 	CC_TOTAL = 'cookiescart-total',
+	CC_TOTAL_ITEMS = 'cookiescart-totalitems',
 	CC_UNIQUE_ITEMS = 'cookiescart-uniqueitems';
 
 	// Attribute names
@@ -74,7 +75,8 @@
 		updateStrings: function () {
 			var
 			items = 0,
-			total = 0;
+			total = 0,
+			total_items = 0;
 
 			$.each($.cookie(), function (itemId, data) {
 				if (itemId.indexOf(CartItem._prefix) !== 0)
@@ -83,9 +85,11 @@
 				data = CartItem.parseCookie(data);
 				items += 1;
 				total += data['quantity'] * data['price'];
+				total_items += data['quantity'];
 			});
 
 			$('.'+CC_UNIQUE_ITEMS).text(items);
+			$('.'+CC_TOTAL_ITEMS).text(total_items);
 			$('.'+CC_TOTAL).text(total.toFixed(2));
 		}
 	});
