@@ -26,99 +26,105 @@
 		this.price = element.getAttribute(CA_ITEM_PRICE);
 	}
 
-	CartItem._prefix = 'cookiescart-';
+	// Static properties and methods
+	_.extend(CartItem, {
+		_prefix: 'cookiescart-',
 
-	CartItem.prototype.getCookieName = function () {
-		return CartItem._prefix + this.id;
-	}
+		parseCookie: function (cookie) {
+			var data = _.object(
+				['quantity', 'price', 'name'], (cookie || ',,').split(','));
+			data['quantity'] = Number(data['quantity']);
+			data['price'] = Number(data['price']);
+			return data;
+		},
 
-	CartItem.prototype.remove = function (amount) {
-		var
-		cookieName = this.getCookieName(),
-		data = CartItem.parseCookie($.cookie(cookieName));
+		updateCart: function () {
+			/*
+			Update an element with class `CC_CART` with clones of matching
+			item representations (`CC_REPR_ITEM`). Note that they should exist
+			hidden somewhere in your page.
+			*/
+			var cookie = $.cookie();
+			var cart = $('.'+CC_CART);
 
-		data['quantity'] -= 1;
+			cart.empty();  // Reset
 
-		// Delete the entry if there is no remaining item
-		if (data['quantity'] === 0)
-			return this.removeAll();
+			$.each(cookie, function (name, data) {
+				// Don't touch others' cookies!
+				if (name.indexOf(CartItem._prefix) !== 0)
+					return;
 
-		// Update the cookie jar
-		$.cookie(cookieName, [data['quantity'], data['price']].join(','));
-	}
+				var
+				itemId = name.substring(CartItem._prefix.length),
+				item = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+itemId+']').clone();
+				cart.append(item);
 
-	CartItem.prototype.removeAll = function () {
-		$.removeCookie(this.getCookieName());
-	}
+				// Render amount and total of the item currently on the cart
+				data = CartItem.parseCookie(data);
+				item.find('.'+CC_AMOUNT).text(data['quantity']);
+				item.find('.'+CC_ITEM_TOTAL).text(
+					(data['quantity'] * data['price']).toFixed(2));
+			});
+		},
 
-	CartItem.prototype.add = function (amount) {
-		var
-		cookieName = this.getCookieName(),
-		data = CartItem.parseCookie($.cookie(cookieName)),
-		quantity = +$('.'+CC_QUANTITY+'['+CA_ITEM_ID+'='+this.id+']').val() || 1;
-
-		data['quantity'] += quantity;
-		data['price'] = this.price;
-		data['name'] = this.name;
-		$.cookie(
-			cookieName,
-			[data['quantity'], data['price'], data['name']].join(','));
-	}
-
-	CartItem.parseCookie = function (cookie) {
-		var data = _.object(
-			['quantity', 'price', 'name'], (cookie || ',,').split(','));
-		data['quantity'] = Number(data['quantity']);
-		data['price'] = Number(data['price']);
-		return data;
-	}
-
-	CartItem.updateCart = function () {
-		/*
-		Update an element with class `CC_CART` with clones of matching
-		item representations (`CC_REPR_ITEM`). Note that they should exist
-		hidden somewhere in your page.
-		*/
-		var cookie = $.cookie();
-		var cart = $('.'+CC_CART);
-
-		cart.empty();  // Reset
-
-		$.each(cookie, function (name, data) {
-			// Don't touch others' cookies!
-			if (name.indexOf(CartItem._prefix) !== 0)
-				return;
-
+		updateStrings: function () {
 			var
-			itemId = name.substring(CartItem._prefix.length),
-			item = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+itemId+']').clone();
-			cart.append(item);
+			items = 0,
+			total = 0;
 
-			// Render amount and total of the item currently on the cart
-			data = CartItem.parseCookie(data);
-			item.find('.'+CC_AMOUNT).text(data['quantity']);
-			item.find('.'+CC_ITEM_TOTAL).text(
-				(data['quantity'] * data['price']).toFixed(2));
-		});
-	}
+			$.each($.cookie(), function (itemId, data) {
+				if (itemId.indexOf(CartItem._prefix) !== 0)
+					return;
 
-	CartItem.updateStrings = function () {
-		var
-		items = 0,
-		total = 0;
+				data = CartItem.parseCookie(data);
+				items += 1;
+				total += data['quantity'] * data['price'];
+			});
 
-		$.each($.cookie(), function (itemId, data) {
-			if (itemId.indexOf(CartItem._prefix) !== 0)
-				return;
+			$('.'+CC_UNIQUE_ITEMS).text(items);
+			$('.'+CC_TOTAL).text(total.toFixed(2));
+		}
+	});
 
-			data = CartItem.parseCookie(data);
-			items += 1;
-			total += data['quantity'] * data['price'];
-		});
+	// Instance properties and methods
+	_.extend(CartItem.prototype, {
+		getCookieName: function () {
+			return CartItem._prefix + this.id;
+		},
 
-		$('.'+CC_UNIQUE_ITEMS).text(items);
-		$('.'+CC_TOTAL).text(total.toFixed(2));
-	}
+		remove: function (amount) {
+			var
+			cookieName = this.getCookieName(),
+			data = CartItem.parseCookie($.cookie(cookieName));
+
+			data['quantity'] -= 1;
+
+			// Delete the entry if there is no remaining item
+			if (data['quantity'] === 0)
+				return this.removeAll();
+
+			// Update the cookie jar
+			$.cookie(cookieName, [data['quantity'], data['price']].join(','));
+		},
+
+		removeAll: function () {
+			$.removeCookie(this.getCookieName());
+		},
+
+		add: function (amount) {
+			var
+			cookieName = this.getCookieName(),
+			data = CartItem.parseCookie($.cookie(cookieName)),
+			quantity = +$('.'+CC_QUANTITY+'['+CA_ITEM_ID+'='+this.id+']').val() || 1;
+
+			data['quantity'] += quantity;
+			data['price'] = this.price;
+			data['name'] = this.name;
+			$.cookie(
+				cookieName,
+				[data['quantity'], data['price'], data['name']].join(','));
+		}
+	});
 
 	function _clickWrap(callback) {
 		var _handler = function (e) {
