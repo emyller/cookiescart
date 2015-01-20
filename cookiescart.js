@@ -1,103 +1,160 @@
 'use strict';
 +function ($) {
 
-	function _parseData(data) {
-		data = _.object(
-			['quantity', 'price', 'name'], (data || ',,').split(','));
+	// Class names
+	var
+	CC_ADD = 'cookiescart-add',
+	CC_AMOUNT = 'cookiescart-item-amount',
+	CC_CART = 'cookiescart-items',
+	CC_QUANTITY = 'cookiescart-quantity',
+	CC_REMOVE = 'cookiescart-remove',
+	CC_REMOVE_ALL = 'cookiescart-remove-all',
+	CC_ITEM_TOTAL = 'cookiescart-item-total',
+	CC_REPR_ITEM = 'cookiescart-item',
+	CC_TOTAL = 'cookiescart-total',
+	CC_UNIQUE_ITEMS = 'cookiescart-uniqueitems';
+
+	// Attribute names
+	var
+	CA_ITEM_ID = 'data-id',
+	CA_ITEM_NAME = 'data-name',
+	CA_ITEM_PRICE = 'data-price';
+
+	function CartItem(element) {
+		this.id = element.getAttribute(CA_ITEM_ID);
+		this.name = element.getAttribute(CA_ITEM_NAME);
+		this.price = element.getAttribute(CA_ITEM_PRICE);
+	}
+
+	CartItem.prototype.getCookieName = function () {
+		return this.id;
+	}
+
+	CartItem.prototype.remove = function (amount) {
+		var
+		cookieName = this.getCookieName(),
+		data = CartItem.parseCookie($.cookie(cookieName));
+
+		data['quantity'] -= 1;
+
+		// Delete the entry if there is no remaining item
+		if (data['quantity'] === 0)
+			return this.removeAll();
+
+		// Update the cookie jar
+		$.cookie(cookieName, [data['quantity'], data['price']].join(','));
+	}
+
+	CartItem.prototype.removeAll = function () {
+		$.removeCookie(this.getCookieName());
+	}
+
+	CartItem.prototype.add = function (amount) {
+		var
+		cookieName = this.getCookieName(),
+		data = CartItem.parseCookie($.cookie(cookieName)),
+		quantity = +$('.'+CC_QUANTITY+'['+CA_ITEM_ID+'='+this.id+']').val() || 1;
+
+		data['quantity'] += quantity;
+		data['price'] = this.price;
+		data['name'] = this.name;
+		$.cookie(
+			cookieName,
+			[data['quantity'], data['price'], data['name']].join(','));
+	}
+
+	CartItem.parseCookie = function (cookie) {
+		var data = _.object(
+			['quantity', 'price', 'name'], (cookie || ',,').split(','));
 		data['quantity'] = Number(data['quantity']);
 		data['price'] = Number(data['price']);
 		return data;
 	}
 
-	function _clickWrap(callback) {
-		var _handler = function (e) {
-			e.preventDefault();  // Nothing weird will happen upon clicks!
-			callback.call(this, e);  // Do the original dance (click)
-
-			// Update routines
-			updateCartItems();
-			updateStrings();
-		}
-		return _handler;
-	}
-
-	function updateCartItems() {
+	CartItem.updateCart = function () {
 		/*
-		Update an element `.cookiescart-items` with clones of matching
-		item representations (`.cookiescart-item`). Note that they should exist
+		Update an element with class `CC_CART` with clones of matching
+		item representations (`CC_REPR_ITEM`). Note that they should exist
 		hidden somewhere in your page.
 		*/
 		var cookie = $.cookie();
-		var cart = $('.cookiescart-items');
+		var cart = $('.'+CC_CART);
 
 		cart.empty();  // Reset
 
 		$.each(cookie, function (itemId, data) {
-			var item = $('.cookiescart-item[data-id='+itemId+']').clone();
+			var item = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+itemId+']').clone();
 			cart.append(item);
 
 			// Render amount and total of the item currently on the cart
-			data = _parseData(data);
-			item.find('.cookiescart-item-amount').text(data['quantity']);
-			item.find('.cookiescart-item-total').text(
+			data = CartItem.parseCookie(data);
+			item.find('.'+CC_AMOUNT).text(data['quantity']);
+			item.find('.'+CC_ITEM_TOTAL).text(
 				(data['quantity'] * data['price']).toFixed(2));
 		});
 	}
 
-	function updateStrings(add) {
+	CartItem.updateStrings = function () {
 		var cookie = $.cookie();
 
 		// Count unique items
-		$('.cookiescart-uniqueitems').text(_.size(cookie));
+		$('.'+CC_UNIQUE_ITEMS).text(_.size(cookie));
 
 		// Calculate total
 		var total = 0;
 		$.each(cookie, function (itemId, data) {
-			data = _parseData(data);
+			data = CartItem.parseCookie(data);
 			total += data['quantity'] * data['price'];
 		});
-		$('.cookiescart-total').text(total.toFixed(2));
+		$('.'+CC_TOTAL).text(total.toFixed(2));
 	}
 
-	$(document).on('click', '.cookiescart-add', _clickWrap(function (e) {
-		// Gather item info
-		var itemId = this.getAttribute('data-id');
-		var itemRepr = $('.cookiescart-item[data-id='+itemId+']');
-		var itemPrice = itemRepr.attr('data-price');
-		var itemName = itemRepr.attr('data-name');
-		var data = _parseData($.cookie(itemId));
+	function _clickWrap(callback) {
+		var _handler = function (e) {
+			// Nothing weird will happen upon clicks!
+			e.preventDefault();
 
-		// Update the cookie jar
-		var quantity = +$('.cookiescart-quantity[data-id='+itemId+']').val() || 1;
-		data['quantity'] += quantity;
-		data['price'] = itemPrice;
-		data['name'] = itemName;
-		$.cookie(itemId, [data['quantity'], data['price'], data['name']].join(','));
-	}));
+			// Do the original dance (click)
+			callback.call(this, e);
 
-	$(document).on('click', '.cookiescart-remove', _clickWrap(function (e) {
-		// Gather item info
-		var itemId = this.getAttribute('data-id');
-		var data = _parseData($.cookie(itemId));
-
-		data['quantity'] -= 1;
-
-		// Delete the entry if there is no remaining item
-		if (data['quantity'] === 0) {
-			$.removeCookie(this.getAttribute('data-id'));
-			return;
+			// Update routines
+			CartItem.updateCart();
+			CartItem.updateStrings();
 		}
+		return _handler;
+	}
 
-		// Update the cookie jar
-		$.cookie(itemId, [data['quantity'], data['price']].join(','));
+	// Add item through add button
+	$(document).on('click', '.'+CC_ADD, _clickWrap(function (e) {
+		var
+		id = this.getAttribute(CA_ITEM_ID),
+		reprElement = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+id+']')[0],
+		item = new CartItem(reprElement);
+
+		item.add(1);
 	}));
 
-	$(document).on('click', '.cookiescart-remove-all', _clickWrap(function (e) {
-		// Delete the item from the cookie jar
-		$.removeCookie(this.getAttribute('data-id'));
+	$(document).on('click', '.'+CC_REMOVE, _clickWrap(function (e) {
+		var
+		id = this.getAttribute(CA_ITEM_ID),
+		reprElement = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+id+']')[0],
+		item = new CartItem(reprElement);
+
+		item.remove(1);
 	}));
 
-	updateCartItems();
-	updateStrings();
+
+	$(document).on('click', '.'+CC_REMOVE_ALL, _clickWrap(function (e) {
+		var
+		id = this.getAttribute(CA_ITEM_ID),
+		reprElement = $('.'+CC_REPR_ITEM+'['+CA_ITEM_ID+'='+id+']')[0],
+		item = new CartItem(reprElement);
+
+		item.removeAll();
+	}));
+
+	// Initialize the cart from previous cookies
+	CartItem.updateCart();
+	CartItem.updateStrings();
 
 }(jQuery)
