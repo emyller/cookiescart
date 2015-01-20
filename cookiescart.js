@@ -53,6 +53,9 @@
 				// Don't touch others' cookies!
 				.filter(function (item) { return item[0].indexOf(CartItem._prefix) === 0 })
 
+				// Sort items by cookie name
+				.sortBy(function (item) { return item[0] })
+
 				// Loop through and render the cart
 				.each(function (item) {
 					var
