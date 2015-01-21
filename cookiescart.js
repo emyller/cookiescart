@@ -171,4 +171,7 @@
 	CartItem.updateCart();
 	CartItem.updateStrings();
 
+	// Expose CartItem
+	window.CartItem = CartItem;
+
 }(jQuery)
