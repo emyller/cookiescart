@@ -1,31 +1,25 @@
 'use strict';
 +function ($) {
 
-	$(document).on('click', '.cookiescart-add', function () {
-		ga('send', {
+	function ga_send(action, label) {
+		return ga('send', {
 			hitType: 'event',
 			eventCategory: 'cookiescart',
-			eventAction: 'add',
-			eventLabel: this.getAttribute('data-id')
-		})
+			eventAction: action,
+			eventLabel: label
+		});
+	}
+
+	$(document).on('click', '.'+CartItem.CC_ADD, function () {
+		ga_send('add', this.getAttribute(CartItem.CA_ITEM_ID));
 	});
 
-	$(document).on('click', '.cookiescart-remove', function () {
-		ga('send', {
-			hitType: 'event',
-			eventCategory: 'cookiescart',
-			eventAction: 'remove',
-			eventLabel: this.getAttribute('data-id')
-		})
+	$(document).on('click', '.'+CartItem.CC_REMOVE, function () {
+		ga_send('remove', this.getAttribute(CartItem.CA_ITEM_ID));
 	});
 
-	$(document).on('click', '.cookiescart-remove-all', function () {
-		ga('send', {
-			hitType: 'event',
-			eventCategory: 'cookiescart',
-			eventAction: 'remove-all',
-			eventLabel: this.getAttribute('data-id')
-		})
+	$(document).on('click', '.'+CartItem.CC_REMOVE_ALL, function () {
+		ga_send('remove-all', this.getAttribute(CartItem.CA_ITEM_ID));
 	});
 
 }(jQuery)
