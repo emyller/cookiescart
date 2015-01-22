@@ -110,7 +110,9 @@
 				return this.removeAll();
 
 			// Update the cookie jar
-			$.cookie(cookieName, [data['quantity'], data['price']].join(','));
+			$.cookie(
+				cookieName,
+				[data['quantity'], data['price'], data['name']].join(','));
 		},
 
 		removeAll: function () {
