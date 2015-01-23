@@ -37,6 +37,11 @@
 			return data;
 		},
 
+		getById: function (id) {
+			var reprElement = $('.'+CartItem.CC_REPR_ITEM+'['+CartItem.CA_ITEM_ID+'='+id+']')[0];
+			return new CartItem(reprElement);
+		},
+
 		updateCart: function () {
 			/*
 			Update an element with class `CartItem.CC_CART` with clones of
@@ -60,13 +65,14 @@
 					var
 					data = CartItem.parseCookie(item[1]),
 					itemId = item[0].substring(CartItem._prefix.length),
-					item = $('.'+CartItem.CC_REPR_ITEM+'['+CartItem.CA_ITEM_ID+'='+itemId+']').clone();
-					cart.append(item);
+					item = CartItem.getById(itemId),
+					itemElement = $('.'+CartItem.CC_REPR_ITEM+'['+CartItem.CA_ITEM_ID+'='+itemId+']').clone();
+					cart.append(itemElement);
 
 					// Render amount and total of the item currently on the cart
-					item.find('.'+CartItem.CC_AMOUNT).text(data['quantity']);
-					item.find('.'+CartItem.CC_ITEM_TOTAL).text(
-						(data['quantity'] * data['price']).toFixed(2));
+					itemElement.find('.'+CartItem.CC_AMOUNT).text(data['quantity']);
+					itemElement.find('.'+CartItem.CC_ITEM_TOTAL).text(
+						(data['quantity'] * item.price).toFixed(2));
 				});
 		},
 
@@ -80,9 +86,12 @@
 				if (itemId.indexOf(CartItem._prefix) !== 0)
 					return;
 
+				itemId = itemId.substring(CartItem._prefix.length);
+				var item = CartItem.getById(itemId);
+
 				data = CartItem.parseCookie(data);
 				items += 1;
-				total += data['quantity'] * data['price'];
+				total += data['quantity'] * item.price;
 				total_items += data['quantity'];
 			});
 
@@ -136,10 +145,7 @@
 
 	function _clickWrap(callback) {
 		var _handler = function (e) {
-			var
-			id = this.getAttribute(CartItem.CA_ITEM_ID),
-			reprElement = $('.'+CartItem.CC_REPR_ITEM+'['+CartItem.CA_ITEM_ID+'='+id+']')[0],
-			item = new CartItem(reprElement);
+			var item = CartItem.getById(this.getAttribute(CartItem.CA_ITEM_ID));
 
 			// Nothing weird will happen upon clicks!
 			e.preventDefault();
